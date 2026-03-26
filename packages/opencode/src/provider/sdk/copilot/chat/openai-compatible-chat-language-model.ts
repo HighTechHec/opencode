@@ -2,9 +2,9 @@ import {
   APICallError,
   InvalidResponseDataError,
   type LanguageModelV2,
+  type LanguageModelV2CallOptions,
   type LanguageModelV2CallWarning,
   type LanguageModelV2Content,
-  type LanguageModelV2FinishReason,
   type LanguageModelV2StreamPart,
   type SharedV2ProviderMetadata,
 } from "@ai-sdk/provider"
@@ -98,7 +98,7 @@ export class OpenAICompatibleChatLanguageModel implements LanguageModelV2 {
     seed,
     toolChoice,
     tools,
-  }: Parameters<LanguageModelV2["doGenerate"]>[0]) {
+  }: LanguageModelV2CallOptions) {
     const warnings: LanguageModelV2CallWarning[] = []
 
     // Parse provider options
@@ -189,9 +189,7 @@ export class OpenAICompatibleChatLanguageModel implements LanguageModelV2 {
     }
   }
 
-  async doGenerate(
-    options: Parameters<LanguageModelV2["doGenerate"]>[0],
-  ): Promise<Awaited<ReturnType<LanguageModelV2["doGenerate"]>>> {
+  async doGenerate(options: LanguageModelV2CallOptions) {
     const { args, warnings } = await this.getArgs({ ...options })
 
     const body = JSON.stringify(args)
@@ -277,9 +275,9 @@ export class OpenAICompatibleChatLanguageModel implements LanguageModelV2 {
       content,
       finishReason: mapOpenAICompatibleFinishReason(choice.finish_reason),
       usage: {
+        totalTokens: responseBody.usage?.total_tokens ?? undefined,
         inputTokens: responseBody.usage?.prompt_tokens ?? undefined,
         outputTokens: responseBody.usage?.completion_tokens ?? undefined,
-        totalTokens: responseBody.usage?.total_tokens ?? undefined,
         reasoningTokens: responseBody.usage?.completion_tokens_details?.reasoning_tokens ?? undefined,
         cachedInputTokens: responseBody.usage?.prompt_tokens_details?.cached_tokens ?? undefined,
       },
@@ -294,9 +292,7 @@ export class OpenAICompatibleChatLanguageModel implements LanguageModelV2 {
     }
   }
 
-  async doStream(
-    options: Parameters<LanguageModelV2["doStream"]>[0],
-  ): Promise<Awaited<ReturnType<LanguageModelV2["doStream"]>>> {
+  async doStream(options: LanguageModelV2CallOptions) {
     const { args, warnings } = await this.getArgs({ ...options })
 
     const body = {
@@ -332,7 +328,7 @@ export class OpenAICompatibleChatLanguageModel implements LanguageModelV2 {
       hasFinished: boolean
     }> = []
 
-    let finishReason: LanguageModelV2FinishReason = "unknown"
+    let finishReason: ReturnType<typeof mapOpenAICompatibleFinishReason> = "other"
     const usage: {
       completionTokens: number | undefined
       completionTokensDetails: {
@@ -671,11 +667,11 @@ export class OpenAICompatibleChatLanguageModel implements LanguageModelV2 {
               type: "finish",
               finishReason,
               usage: {
-                inputTokens: usage.promptTokens ?? undefined,
-                outputTokens: usage.completionTokens ?? undefined,
-                totalTokens: usage.totalTokens ?? undefined,
-                reasoningTokens: usage.completionTokensDetails.reasoningTokens ?? undefined,
-                cachedInputTokens: usage.promptTokensDetails.cachedTokens ?? undefined,
+                totalTokens: usage.totalTokens,
+                inputTokens: usage.promptTokens,
+                outputTokens: usage.completionTokens,
+                reasoningTokens: usage.completionTokensDetails.reasoningTokens,
+                cachedInputTokens: usage.promptTokensDetails.cachedTokens,
               },
               providerMetadata,
             })

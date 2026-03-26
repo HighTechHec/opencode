@@ -1,12 +1,12 @@
 import {
   type LanguageModelV2Prompt,
-  type SharedV2ProviderMetadata,
+  type SharedV2ProviderOptions,
   UnsupportedFunctionalityError,
 } from "@ai-sdk/provider"
 import type { OpenAICompatibleChatPrompt } from "./openai-compatible-api-types"
 import { convertToBase64 } from "@ai-sdk/provider-utils"
 
-function getOpenAIMetadata(message: { providerOptions?: SharedV2ProviderMetadata }) {
+function getOpenAIMetadata(message: { providerOptions?: SharedV2ProviderOptions }) {
   return message?.providerOptions?.copilot ?? {}
 }
 

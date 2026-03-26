@@ -138,7 +138,7 @@ export function prepareResponsesTools({
         break
       }
       default:
-        toolWarnings.push({ type: "unsupported-tool", tool })
+        toolWarnings.push({ type: "unsupported-tool", tool, details: "tool type" })
         break
     }
   }
